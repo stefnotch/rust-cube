@@ -1,12 +1,28 @@
 use crossterm::{
-    cursor::{CursorShape, Hide, MoveTo, SetCursorShape},
+    cursor::{Hide, MoveTo},
     event, execute, queue,
-    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
-    terminal, ExecutableCommand, Result,
+    style::{Color, Print, SetBackgroundColor, SetForegroundColor},
+    terminal, Result,
 };
 use std::io::{stdout, Write};
 
-pub use Color::Rgb as RgbColor;
+pub struct RgbColor {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+impl From<RgbColor> for crossterm::style::Color {
+    fn from(item: RgbColor) -> Self {
+        Color::Rgb {
+            r: item.r,
+            g: item.g,
+            b: item.b,
+        }
+    }
+}
+
+const height_scale: u16 = 2; // TODO: This is totally a hack;
 
 pub struct DrawBuffer {
     pub buffer: Vec<u8>,
@@ -42,7 +58,11 @@ impl DrawBuffer {
         self.buffer.fill(0);
     }
 
-    pub fn get_color(&self, column: u16, row: u16) -> Color {
+    pub fn get_color(&self, column: u16, row: u16) -> RgbColor {
+        if column >= self.width || row >= self.height {
+            return RgbColor { r: 0, g: 0, b: 0 };
+        }
+
         let pos: usize = ((row * self.width + column) * 3).into();
         RgbColor {
             r: self.buffer[pos],
@@ -54,10 +74,22 @@ impl DrawBuffer {
     fn get_buffer_size(terminal_size: (u16, u16)) -> usize {
         (terminal_size.0 * terminal_size.1 * 3).into()
     }
+
+    pub(crate) fn set_color(&mut self, column: u16, row: u16, color: RgbColor) {
+        if column >= self.width || row >= self.height {
+            return;
+        }
+
+        let pos: usize = ((row * self.width + column) * 3).into();
+        self.buffer[pos] = color.r;
+        self.buffer[pos + 1] = color.g;
+        self.buffer[pos + 2] = color.b;
+    }
 }
 /// `(columns, rows)`
 fn get_terminal_size() -> (u16, u16) {
-    terminal::size().unwrap_or((1, 1))
+    let size = terminal::size().unwrap_or((1, 1));
+    (size.0, size.1 * height_scale)
 }
 
 pub fn render(buffer: &DrawBuffer) -> Result<()> {
@@ -66,16 +98,22 @@ pub fn render(buffer: &DrawBuffer) -> Result<()> {
 
     queue!(stdout, Hide)?;
 
-    for row in 0..terminal_size.1 {
-        queue!(stdout, MoveTo(0, row))?;
+    for row in (0..terminal_size.1).step_by(height_scale.into()) {
+        queue!(stdout, MoveTo(0, row / 2))?;
 
         for column in 0..terminal_size.0 {
             let color = buffer.get_color(column, row);
 
             // TODO: Only change background color if it has changed
-            queue!(stdout, SetBackgroundColor(color))?;
+            queue!(stdout, SetBackgroundColor(color.into()))?;
 
-            queue!(stdout, Print(" "))?;
+            if height_scale >= 2 {
+                let bottom_color = buffer.get_color(column, row + 1);
+                queue!(stdout, SetForegroundColor(bottom_color.into()))?;
+                queue!(stdout, Print("_"))?; // TODO: Print "Lower half block"
+            } else {
+                queue!(stdout, Print(" "))?;
+            }
         }
     }
 

@@ -1,6 +1,7 @@
+#[derive(Copy, Clone)]
 pub struct Vector2<T> {
-    x: T,
-    y: T,
+    pub x: T,
+    pub y: T,
 }
 
 impl<
@@ -18,19 +19,38 @@ impl<
     pub fn dot(&self, rhs: &Vector2<T>) -> T {
         self.x * rhs.x + self.y * rhs.y
     }
+}
 
-    // Hmmmmmmm, I'm really starting to reconsider this code.
-    // Maybe generics weren't that good of a idea here.
-    pub fn normalized(&self, zero: T) -> Vector2<T> {
+impl Vector2<f64> {
+    pub fn min(&self, rhs: &Vector2<f64>) -> Vector2<f64> {
+        Vector2 {
+            x: self.x.min(rhs.x),
+            y: self.y.min(rhs.y),
+        }
+    }
+
+    pub fn max(&self, rhs: &Vector2<f64>) -> Vector2<f64> {
+        Vector2 {
+            x: self.x.max(rhs.x),
+            y: self.y.max(rhs.y),
+        }
+    }
+
+    pub fn normalized(&self) -> Vector2<f64> {
         let length_squared = self.x * self.x + self.y * self.y;
-        if length_squared > zero {
+        if length_squared > f64::EPSILON {
+            let length = length_squared.sqrt();
             Vector2 {
-                x: self.x / length_squared,
-                y: self.y / length_squared,
+                x: self.x / length,
+                y: self.y / length,
             }
         } else {
-            Vector2 { x: zero, y: zero }
+            Vector2 { x: 0., y: 0. }
         }
+    }
+
+    pub fn length(&self) -> f64 {
+        (self.x * self.x + self.y * self.y).sqrt()
     }
 }
 

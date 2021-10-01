@@ -1,10 +1,14 @@
 use std::time::Duration;
 
 use crossterm::event;
+use cube::Cube;
 use game_loop::game_loop;
+use vector3::Vector3;
 
-mod rust_cube;
+mod cube;
 mod terminal_renderer;
+mod vector2;
+mod vector3;
 
 struct Game {
     pub draw_buffer: terminal_renderer::DrawBuffer,
@@ -15,9 +19,13 @@ impl Game {
         self.draw_buffer.update_size();
         self.draw_buffer.clear();
 
-        self.draw_buffer.buffer[0] = 220u8;
-        self.draw_buffer.buffer[1] = 200u8;
-        self.draw_buffer.buffer[10] = 180u8;
+        let cube = Cube {
+            pos: Vector3::zero(),
+            size: Vector3::new(0.5, 0.5, 0.5),
+        };
+
+        // TODO: Move down to the render function
+        cube.render(&mut self.draw_buffer);
     }
 
     fn render(&self) {
@@ -36,8 +44,8 @@ fn main() {
 
     game_loop(
         game,
-        30,
-        0.1,
+        15,
+        0.2,
         |g| {
             let has_event = event::poll(Duration::from_secs(0)).unwrap_or(false);
             if has_event {
