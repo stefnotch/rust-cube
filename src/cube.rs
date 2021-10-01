@@ -5,7 +5,7 @@ use crate::vector3::Vector3;
 pub struct Cube {
     pub pos: Vector3,
     pub size: Vector3,
-    // TODO: Rotation
+    pub euler_angles: Vector3,
 }
 
 impl Cube {
@@ -13,20 +13,21 @@ impl Cube {
         Cube {
             pos: Vector3::zero(),
             size: Vector3::new(1., 1., 1.),
+            euler_angles: Vector3::zero(),
         }
     }
 
     /// `(top, sides, bottom)`
     pub fn get_faces(&self) -> [Rectangle3D; 6] {
-        let a = self.pos + self.size * Vector3::new(1., 1., 1.);
-        let b = self.pos + self.size * Vector3::new(-1., 1., 1.);
-        let c = self.pos + self.size * Vector3::new(-1., 1., -1.);
-        let d = self.pos + self.size * Vector3::new(1., 1., -1.);
+        let a = self.pos + self.size * Vector3::new(1., 1., 1.).rotate_euler(&self.euler_angles);
+        let b = self.pos + self.size * Vector3::new(-1., 1., 1.).rotate_euler(&self.euler_angles);
+        let c = self.pos + self.size * Vector3::new(-1., 1., -1.).rotate_euler(&self.euler_angles);
+        let d = self.pos + self.size * Vector3::new(1., 1., -1.).rotate_euler(&self.euler_angles);
 
-        let e = self.pos + self.size * Vector3::new(1., -1., 1.);
-        let f = self.pos + self.size * Vector3::new(-1., -1., 1.);
-        let g = self.pos + self.size * Vector3::new(-1., -1., -1.);
-        let h = self.pos + self.size * Vector3::new(1., -1., -1.);
+        let e = self.pos + self.size * Vector3::new(1., -1., 1.).rotate_euler(&self.euler_angles);
+        let f = self.pos + self.size * Vector3::new(-1., -1., 1.).rotate_euler(&self.euler_angles);
+        let g = self.pos + self.size * Vector3::new(-1., -1., -1.).rotate_euler(&self.euler_angles);
+        let h = self.pos + self.size * Vector3::new(1., -1., -1.).rotate_euler(&self.euler_angles);
 
         let faces: [Rectangle3D; 6] = [
             Rectangle3D {

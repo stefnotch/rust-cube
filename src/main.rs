@@ -15,13 +15,14 @@ struct Game {
 }
 
 impl Game {
-    fn update(&mut self) {
+    fn update(&mut self, seconds: f64) {
         self.draw_buffer.update_size();
         self.draw_buffer.clear();
 
         let cube = Cube {
             pos: Vector3::zero(),
             size: Vector3::new(0.5, 0.5, 0.5),
+            euler_angles: Vector3::new(0., seconds * 10., 45.),
         };
 
         // TODO: Move down to the render function
@@ -44,8 +45,8 @@ fn main() {
 
     game_loop(
         game,
-        15,
-        0.2,
+        10,
+        0.5,
         |g| {
             let has_event = event::poll(Duration::from_secs(0)).unwrap_or(false);
             if has_event {
@@ -62,7 +63,7 @@ fn main() {
                 }
             }
 
-            g.game.update();
+            g.game.update(g.running_time());
         },
         |g| {
             g.game.render();

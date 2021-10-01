@@ -37,6 +37,39 @@ impl Vector3 {
             z: 1.,
         }
     }
+
+    /// Rotates in the X-Y-Z order around the origin
+    pub fn rotate_euler(&self, euler_angles: &Vector3) -> Vector3 {
+        fn to_rad(v: f64) -> f64 {
+            v * std::f64::consts::PI / 180.
+        }
+
+        let rad = Vector3::new(
+            to_rad(euler_angles.x),
+            to_rad(euler_angles.y),
+            to_rad(euler_angles.z),
+        );
+
+        let mut result = Vector3 {
+            x: self.x,
+            y: self.y * rad.x.cos() - self.z * rad.x.sin(),
+            z: self.z * rad.x.cos() + self.y * rad.x.sin(),
+        };
+
+        result = Vector3 {
+            x: result.x * rad.y.cos() + result.z * rad.y.sin(),
+            y: result.y,
+            z: result.z * rad.y.cos() - result.x * rad.y.sin(),
+        };
+
+        result = Vector3 {
+            x: result.x * rad.z.cos() - result.y * rad.z.sin(),
+            y: result.y * rad.z.cos() + result.x * rad.z.sin(),
+            z: result.z,
+        };
+
+        result
+    }
 }
 
 impl std::ops::Mul for Vector3 {

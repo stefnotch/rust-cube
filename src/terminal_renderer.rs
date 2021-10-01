@@ -22,7 +22,7 @@ impl From<RgbColor> for crossterm::style::Color {
     }
 }
 
-const height_scale: u16 = 2; // TODO: This is totally a hack;
+const HEIGHT_SCALE: u16 = 2; // TODO: This is totally a hack;
 
 pub struct DrawBuffer {
     pub buffer: Vec<u8>,
@@ -89,7 +89,7 @@ impl DrawBuffer {
 /// `(columns, rows)`
 fn get_terminal_size() -> (u16, u16) {
     let size = terminal::size().unwrap_or((1, 1));
-    (size.0, size.1 * height_scale)
+    (size.0, size.1 * HEIGHT_SCALE)
 }
 
 pub fn render(buffer: &DrawBuffer) -> Result<()> {
@@ -98,7 +98,7 @@ pub fn render(buffer: &DrawBuffer) -> Result<()> {
 
     queue!(stdout, Hide)?;
 
-    for row in (0..terminal_size.1).step_by(height_scale.into()) {
+    for row in (0..terminal_size.1).step_by(HEIGHT_SCALE.into()) {
         queue!(stdout, MoveTo(0, row / 2))?;
 
         for column in 0..terminal_size.0 {
@@ -107,7 +107,7 @@ pub fn render(buffer: &DrawBuffer) -> Result<()> {
             // TODO: Only change background color if it has changed
             queue!(stdout, SetBackgroundColor(color.into()))?;
 
-            if height_scale >= 2 {
+            if HEIGHT_SCALE >= 2 {
                 let bottom_color = buffer.get_color(column, row + 1);
                 queue!(stdout, SetForegroundColor(bottom_color.into()))?;
                 queue!(stdout, Print("_"))?; // TODO: Print "Lower half block"
