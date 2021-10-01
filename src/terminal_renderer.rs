@@ -118,6 +118,5 @@ pub fn render(buffer: &DrawBuffer) -> Result<()> {
     }
 
     stdout.flush()?;
-
     Ok(())
 }

@@ -22,7 +22,7 @@ impl Game {
         let cube = Cube {
             pos: Vector3::zero(),
             size: Vector3::new(0.5, 0.5, 0.5),
-            euler_angles: Vector3::new(0., seconds * 10., 45.),
+            euler_angles: Vector3::new(0., seconds * 10., 30.),
         };
 
         // TODO: Move down to the render function
@@ -45,8 +45,8 @@ fn main() {
 
     game_loop(
         game,
-        10,
-        0.5,
+        1,
+        1.,
         |g| {
             let has_event = event::poll(Duration::from_secs(0)).unwrap_or(false);
             if has_event {
