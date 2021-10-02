@@ -9,16 +9,13 @@
       "request": "launch",
       "name": "Debug executable 'rust-cube'",
       "cargo": {
-        "args": [
-          "build",
-          "--bin=rust-cube",
-          "--package=rust-cube"
-        ],
+        "args": ["build", "--bin=rust-cube", "--package=rust-cube"],
         "filter": {
           "name": "rust-cube",
           "kind": "bin"
         }
       },
+      "terminal": "external",
       "args": [],
       "cwd": "${workspaceFolder}"
     },
@@ -27,17 +24,13 @@
       "request": "launch",
       "name": "Debug unit tests in executable 'rust-cube'",
       "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bin=rust-cube",
-          "--package=rust-cube"
-        ],
+        "args": ["test", "--no-run", "--bin=rust-cube", "--package=rust-cube"],
         "filter": {
           "name": "rust-cube",
           "kind": "bin"
         }
       },
+      "terminal": "external",
       "args": [],
       "cwd": "${workspaceFolder}"
     }
