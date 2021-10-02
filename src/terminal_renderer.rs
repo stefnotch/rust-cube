@@ -75,7 +75,7 @@ impl DrawBuffer {
         (terminal_size.0 * terminal_size.1 * 3).into()
     }
 
-    pub(crate) fn set_color(&mut self, column: u16, row: u16, color: RgbColor) {
+    pub fn set_color(&mut self, column: u16, row: u16, color: &RgbColor) {
         if column >= self.width || row >= self.height {
             return;
         }

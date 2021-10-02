@@ -50,7 +50,6 @@ impl Vector3 {
             to_rad(euler_angles.z),
         );
 
-        // TODO: This is probably borked
         let result_x = Vector3 {
             x: self.x,
             y: self.y * rad.x.cos() - self.z * rad.x.sin(),

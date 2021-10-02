@@ -1,3 +1,5 @@
+use crate::vector3::Vector3;
+
 #[derive(Copy, Clone)]
 pub struct Vector2<T> {
     pub x: T,
@@ -51,6 +53,23 @@ impl Vector2<f64> {
 
     pub fn length(&self) -> f64 {
         (self.x * self.x + self.y * self.y).sqrt()
+    }
+
+    pub fn wedge_product(&self, rhs: &Vector2<f64>) -> f64 {
+        Vector2 {
+            x: self.y,
+            y: -self.x,
+        }
+        .dot(rhs)
+    }
+}
+
+impl Into<Vector2<f64>> for Vector3 {
+    fn into(self) -> Vector2<f64> {
+        Vector2 {
+            x: self.x,
+            y: self.y,
+        }
     }
 }
 

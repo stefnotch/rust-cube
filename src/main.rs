@@ -100,7 +100,7 @@ fn main() -> Result<()> {
                                     );
                                     g.game.mouse_down_pos = (m.column, m.row);
                                     g.game.rotation.y += delta.0 as f64;
-                                    g.game.rotation.x += delta.1 as f64;
+                                    g.game.rotation.x -= delta.1 as f64;
                                 }
                             }
                             event::MouseEventKind::Up(button) => {
@@ -111,7 +111,7 @@ fn main() -> Result<()> {
                                     );
                                     g.game.mouse_down_pos = (m.column, m.row);
                                     g.game.rotation.y += delta.0 as f64;
-                                    g.game.rotation.x += delta.1 as f64;
+                                    g.game.rotation.x -= delta.1 as f64;
                                 }
                             }
                             _ => {}

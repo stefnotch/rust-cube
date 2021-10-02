@@ -98,6 +98,27 @@ pub struct Rectangle3D {
     pub bottom_left: Vector3,
 }
 
+const RAINBOW: [RgbColor; 6] = [
+    RgbColor { r: 255, g: 0, b: 0 },
+    RgbColor { r: 0, g: 255, b: 0 },
+    RgbColor {
+        r: 255,
+        g: 255,
+        b: 0,
+    },
+    RgbColor { r: 0, g: 0, b: 255 },
+    RgbColor {
+        r: 255,
+        g: 0,
+        b: 255,
+    },
+    RgbColor {
+        r: 0,
+        g: 255,
+        b: 255,
+    },
+];
+
 impl Rectangle3D {
     pub fn scaled_normal(&self) -> Vector3 {
         (self.bottom_left - self.top_left).cross(&(self.top_right - self.top_left))
@@ -128,7 +149,6 @@ impl Rectangle3D {
                 (v.y * half_size + half_height) as u16,
             )
         };
-
         let unproject = |v: (u16, u16)| Vector2 {
             x: (v.0 as f64 - half_width) / half_size,
             y: (v.1 as f64 - half_height) / half_size,
@@ -138,7 +158,11 @@ impl Rectangle3D {
         let bounding_box_min_2d = project(bounding_box_min);
         let bounding_box_max_2d = project(bounding_box_max);
 
-        let top_left_2d = Vector2::new(self.top_left.x, self.top_left.y);
+        let top_left_2d: Vector2<f64> = self.top_left.into();
+        let top_right_2d: Vector2<f64> = self.top_right.into();
+        let bottom_left_2d: Vector2<f64> = self.bottom_left.into();
+        let bottom_right_2d: Vector2<f64> = self.bottom_right.into();
+
         let horizontal_2d = Vector2::new(horizontal.x, horizontal.y);
         let vertical_2d = Vector2::new(vertical.x, vertical.y);
 
@@ -149,21 +173,44 @@ impl Rectangle3D {
         let vertical_2d_length = vertical_2d.length();
 
         // Iterate over draw buffer
-        for column in bounding_box_min_2d.0..bounding_box_max_2d.0 {
-            for row in bounding_box_min_2d.1..bounding_box_max_2d.1 {
+        for column in bounding_box_min_2d.0..=bounding_box_max_2d.0 {
+            for row in bounding_box_min_2d.1..=bounding_box_max_2d.1 {
                 let point = unproject((column, row));
+
+                // TODO: Fix those bad UVs
                 let uv = (
-                    (point - top_left_2d).dot(&horizontal_2d_direction) / horizontal_2d_length,
-                    (point - top_left_2d).dot(&vertical_2d_direction) / vertical_2d_length,
+                    (point - top_left_2d).dot(&horizontal_2d_direction)
+                        / horizontal_2d_length.max(0.1),
+                    (point - top_left_2d).dot(&vertical_2d_direction) / vertical_2d_length.max(0.1),
                 );
 
-                if uv.0 >= 0. && uv.1 >= 0. && uv.0 <= 1. && uv.1 <= 1. {
+                let b = (point - top_left_2d).wedge_product(&(top_right_2d - top_left_2d)) >= 0.
+                    && (point - top_right_2d).wedge_product(&(bottom_right_2d - top_right_2d))
+                        >= 0.
+                    && (point - bottom_right_2d).wedge_product(&(bottom_left_2d - bottom_right_2d))
+                        >= 0.
+                    && (point - bottom_left_2d).wedge_product(&(top_left_2d - bottom_left_2d))
+                        >= 0.;
+                if b {
+                    let col = &RAINBOW[index % RAINBOW.len()];
+
+                    draw_buffer.set_color(
+                        column,
+                        row,
+                        &RgbColor {
+                            r: col.r / 2,
+                            g: col.g / 2,
+                            b: col.b / 2,
+                        },
+                    );
+
+                    /*
                     if uv.0 < 0.1 {
                         // Draw the outline
                         draw_buffer.set_color(
                             column,
                             row,
-                            RgbColor {
+                            &RgbColor {
                                 r: 255,
                                 g: 255,
                                 b: 255,
@@ -174,15 +221,27 @@ impl Rectangle3D {
                         draw_buffer.set_color(
                             column,
                             row,
-                            RgbColor {
+                            &RgbColor {
                                 r: (uv.0 * 255.) as u8,
                                 g: (uv.1 * 255.) as u8,
                                 b: (index * 40) as u8,
                             },
                         )
-                    }
+                    }*/
                 }
             }
         }
+
+        {
+            let tl = project(Vector2::new(self.top_left.x, self.top_left.y));
+            let tr = project(Vector2::new(self.top_right.x, self.top_right.y));
+            let bl = project(Vector2::new(self.bottom_left.x, self.bottom_left.y));
+            let br = project(Vector2::new(self.bottom_right.x, self.bottom_right.y));
+            draw_buffer.set_color(tl.0, tl.1, &RAINBOW[index % RAINBOW.len()]);
+            draw_buffer.set_color(tr.0, tr.1, &RAINBOW[index % RAINBOW.len()]);
+            draw_buffer.set_color(bl.0, bl.1, &RAINBOW[index % RAINBOW.len()]);
+            draw_buffer.set_color(br.0, br.1, &RAINBOW[index % RAINBOW.len()]);
+        }
+        return;
     }
 }
