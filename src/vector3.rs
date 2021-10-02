@@ -50,25 +50,26 @@ impl Vector3 {
             to_rad(euler_angles.z),
         );
 
-        let mut result = Vector3 {
+        // TODO: This is probably borked
+        let result_x = Vector3 {
             x: self.x,
             y: self.y * rad.x.cos() - self.z * rad.x.sin(),
             z: self.z * rad.x.cos() + self.y * rad.x.sin(),
         };
 
-        result = Vector3 {
-            x: result.x * rad.y.cos() + result.z * rad.y.sin(),
-            y: result.y,
-            z: result.z * rad.y.cos() - result.x * rad.y.sin(),
+        let result_xy = Vector3 {
+            x: result_x.x * rad.y.cos() + result_x.z * rad.y.sin(),
+            y: result_x.y,
+            z: result_x.z * rad.y.cos() - result_x.x * rad.y.sin(),
         };
 
-        result = Vector3 {
-            x: result.x * rad.z.cos() - result.y * rad.z.sin(),
-            y: result.y * rad.z.cos() + result.x * rad.z.sin(),
-            z: result.z,
+        let result_xyz = Vector3 {
+            x: result_xy.x * rad.z.cos() - result_xy.y * rad.z.sin(),
+            y: result_xy.y * rad.z.cos() + result_xy.x * rad.z.sin(),
+            z: result_xy.z,
         };
 
-        result
+        result_xyz
     }
 }
 

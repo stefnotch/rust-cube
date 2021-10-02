@@ -19,52 +19,56 @@ impl Cube {
 
     /// `(top, sides, bottom)`
     pub fn get_faces(&self) -> [Rectangle3D; 6] {
-        let a = self.pos + self.size * Vector3::new(1., 1., 1.).rotate_euler(&self.euler_angles);
-        let b = self.pos + self.size * Vector3::new(-1., 1., 1.).rotate_euler(&self.euler_angles);
-        let c = self.pos + self.size * Vector3::new(-1., 1., -1.).rotate_euler(&self.euler_angles);
-        let d = self.pos + self.size * Vector3::new(1., 1., -1.).rotate_euler(&self.euler_angles);
+        let a = self.pos + (self.size * Vector3::new(1., 1., 1.)).rotate_euler(&self.euler_angles);
+        let b = self.pos + (self.size * Vector3::new(-1., 1., 1.)).rotate_euler(&self.euler_angles);
+        let c =
+            self.pos + (self.size * Vector3::new(-1., 1., -1.)).rotate_euler(&self.euler_angles);
+        let d = self.pos + (self.size * Vector3::new(1., 1., -1.)).rotate_euler(&self.euler_angles);
 
-        let e = self.pos + self.size * Vector3::new(1., -1., 1.).rotate_euler(&self.euler_angles);
-        let f = self.pos + self.size * Vector3::new(-1., -1., 1.).rotate_euler(&self.euler_angles);
-        let g = self.pos + self.size * Vector3::new(-1., -1., -1.).rotate_euler(&self.euler_angles);
-        let h = self.pos + self.size * Vector3::new(1., -1., -1.).rotate_euler(&self.euler_angles);
+        let e = self.pos + (self.size * Vector3::new(1., -1., 1.)).rotate_euler(&self.euler_angles);
+        let f =
+            self.pos + (self.size * Vector3::new(-1., -1., 1.)).rotate_euler(&self.euler_angles);
+        let g =
+            self.pos + (self.size * Vector3::new(-1., -1., -1.)).rotate_euler(&self.euler_angles);
+        let h =
+            self.pos + (self.size * Vector3::new(1., -1., -1.)).rotate_euler(&self.euler_angles);
 
         let faces: [Rectangle3D; 6] = [
             Rectangle3D {
-                top_left: c,
-                top_right: d,
-                bottom_right: a,
-                bottom_left: b,
-            },
-            Rectangle3D {
-                top_left: b,
-                top_right: a,
-                bottom_right: h,
-                bottom_left: g,
-            },
-            Rectangle3D {
-                top_left: c,
-                top_right: b,
-                bottom_right: g,
-                bottom_left: f,
-            },
-            Rectangle3D {
                 top_left: d,
                 top_right: c,
+                bottom_right: b,
+                bottom_left: a,
+            },
+            Rectangle3D {
+                top_left: a,
+                top_right: b,
                 bottom_right: f,
                 bottom_left: e,
             },
             Rectangle3D {
-                top_left: a,
+                top_left: b,
+                top_right: c,
+                bottom_right: g,
+                bottom_left: f,
+            },
+            Rectangle3D {
+                top_left: c,
                 top_right: d,
+                bottom_right: h,
+                bottom_left: g,
+            },
+            Rectangle3D {
+                top_left: d,
+                top_right: a,
                 bottom_right: e,
                 bottom_left: h,
             },
             Rectangle3D {
-                top_left: g,
-                top_right: h,
-                bottom_right: e,
-                bottom_left: f,
+                top_left: e,
+                top_right: f,
+                bottom_right: g,
+                bottom_left: h,
             },
         ];
 
@@ -75,23 +79,23 @@ impl Cube {
         let faces = self.get_faces();
 
         let forward = Vector3::new(0., 0., 1.);
-        for face in faces {
+        for (index, face) in faces.iter().enumerate() {
             let normal = face.scaled_normal();
             // Backface culling
             if forward.dot(&normal) > 0. {
                 continue;
             }
 
-            face.render(draw_buffer);
+            face.render(draw_buffer, index);
         }
     }
 }
 
 pub struct Rectangle3D {
-    top_left: Vector3,
-    top_right: Vector3,
-    bottom_right: Vector3,
-    bottom_left: Vector3,
+    pub top_left: Vector3,
+    pub top_right: Vector3,
+    pub bottom_right: Vector3,
+    pub bottom_left: Vector3,
 }
 
 impl Rectangle3D {
@@ -99,7 +103,7 @@ impl Rectangle3D {
         (self.bottom_left - self.top_left).cross(&(self.top_right - self.top_left))
     }
 
-    fn render(&self, draw_buffer: &mut DrawBuffer) {
+    pub fn render(&self, draw_buffer: &mut DrawBuffer, index: usize) {
         let horizontal = self.top_right - self.top_left;
         let vertical = self.bottom_left - self.top_left;
 
@@ -153,20 +157,31 @@ impl Rectangle3D {
                     (point - top_left_2d).dot(&vertical_2d_direction) / vertical_2d_length,
                 );
 
-                if uv.0 < 0. || uv.1 < 0. || uv.0 >= 1. || uv.1 >= 1. {
-                    continue;
+                if uv.0 >= 0. && uv.1 >= 0. && uv.0 <= 1. && uv.1 <= 1. {
+                    if uv.0 < 0.1 {
+                        // Draw the outline
+                        draw_buffer.set_color(
+                            column,
+                            row,
+                            RgbColor {
+                                r: 255,
+                                g: 255,
+                                b: 255,
+                            },
+                        )
+                    } else {
+                        // Draw this point
+                        draw_buffer.set_color(
+                            column,
+                            row,
+                            RgbColor {
+                                r: (uv.0 * 255.) as u8,
+                                g: (uv.1 * 255.) as u8,
+                                b: (index * 40) as u8,
+                            },
+                        )
+                    }
                 }
-
-                // Draw this point
-                draw_buffer.set_color(
-                    column,
-                    row,
-                    RgbColor {
-                        r: (uv.0 * 255.) as u8,
-                        g: (uv.1 * 255.) as u8,
-                        b: 0,
-                    },
-                )
             }
         }
     }

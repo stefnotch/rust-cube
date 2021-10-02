@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crossterm::event;
-use cube::Cube;
+use cube::{Cube, Rectangle3D};
 use game_loop::game_loop;
 use vector3::Vector3;
 
@@ -22,14 +22,31 @@ impl Game {
         let cube = Cube {
             pos: Vector3::zero(),
             size: Vector3::new(0.5, 0.5, 0.5),
-            euler_angles: Vector3::new(0., seconds * 10., 30.),
+            euler_angles: Vector3::new(10. * seconds, 0. * seconds, 0. * seconds),
         };
 
-        // TODO: Move down to the render function
+        // TODO: Move to draw function
         cube.render(&mut self.draw_buffer);
+
+        // let rect = Rectangle3D {
+        //     top_left: Vector3::new(-0.6, 0.25, 0.5),
+        //     top_right: Vector3::new(-0.25, -0.6, 0.5),
+        //     bottom_right: Vector3::new(0.6, -0.25, 0.5),
+        //     bottom_left: Vector3::new(0.25, 0.6, 0.5),
+        // };
+
+        // let rect = Rectangle3D {
+        //     top_left: Vector3::new(-0.6, 0.25, -0.5),
+        //     top_right: Vector3::new(-0.25, -0.6, -0.5),
+        //     bottom_right: Vector3::new(-0.25, -0.6, 0.5),
+        //     bottom_left: Vector3::new(-0.6, 0.25, 0.5),
+        // };
+
+        // rect.render(&mut self.draw_buffer, 0);
     }
 
-    fn render(&self) {
+    // TODO: Make immutable self
+    fn render(&mut self) {
         // TODO: Maybe don't ignore all errors?
         match terminal_renderer::render(&self.draw_buffer) {
             Ok(_) => {}
@@ -45,8 +62,8 @@ fn main() {
 
     game_loop(
         game,
-        1,
-        1.,
+        10,
+        0.5,
         |g| {
             let has_event = event::poll(Duration::from_secs(0)).unwrap_or(false);
             if has_event {
