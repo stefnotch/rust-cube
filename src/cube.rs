@@ -1,3 +1,5 @@
+use image::{DynamicImage, GenericImageView};
+
 use crate::terminal_renderer::{DrawBuffer, RgbColor};
 use crate::vector2::Vector2;
 use crate::vector3::Vector3;
@@ -75,7 +77,7 @@ impl Cube {
         faces
     }
 
-    pub fn render(&self, draw_buffer: &mut DrawBuffer) {
+    pub fn render(&self, draw_buffer: &mut DrawBuffer, image: &DynamicImage) {
         let faces = self.get_faces();
 
         let forward = Vector3::new(0., 0., 1.);
@@ -86,7 +88,7 @@ impl Cube {
                 continue;
             }
 
-            face.render(draw_buffer, index);
+            face.render(draw_buffer, index, &image);
         }
     }
 }
@@ -124,7 +126,7 @@ impl Rectangle3D {
         (self.bottom_left - self.top_left).cross(&(self.top_right - self.top_left))
     }
 
-    pub fn render(&self, draw_buffer: &mut DrawBuffer, index: usize) {
+    pub fn render(&self, draw_buffer: &mut DrawBuffer, index: usize, image: &DynamicImage) {
         let horizontal = self.top_right - self.top_left;
         let vertical = self.bottom_left - self.top_left;
 
@@ -242,6 +244,22 @@ impl Rectangle3D {
                         },
                     );
 
+                    // TODO: Wrap around or something?
+                    let pixel = image.get_pixel(
+                        (uv.x * image.width() as f64) as u32,
+                        (uv.y * image.height() as f64) as u32,
+                    );
+
+                    draw_buffer.set_color(
+                        column,
+                        row,
+                        &RgbColor {
+                            r: pixel.0[0],
+                            g: pixel.0[1],
+                            b: pixel.0[2],
+                        },
+                    )
+
                     /*
                     if barycentric_coordinates[0] > 0.5 {
                         draw_buffer.set_color(
@@ -256,7 +274,7 @@ impl Rectangle3D {
                     }*/
 
                     // Draw the bary coords
-                    draw_buffer.set_color(
+                    /*draw_buffer.set_color(
                         column,
                         row,
                         &RgbColor {
@@ -264,19 +282,7 @@ impl Rectangle3D {
                             g: (uv.y * 255.) as u8,
                             b: 0,
                         },
-                    )
-                    /*else {
-                        // Draw this point
-                        draw_buffer.set_color(
-                            column,
-                            row,
-                            &RgbColor {
-                                r: (uv.0 * 255.) as u8,
-                                g: (uv.1 * 255.) as u8,
-                                b: (index * 40) as u8,
-                            },
-                        )
-                    }*/
+                    )*/
                 }
             }
         }

@@ -65,7 +65,7 @@ impl DrawBuffer {
             return RgbColor { r: 0, g: 0, b: 0 };
         }
 
-        let pos: usize = ((row * self.width + column) * 3).into();
+        let pos: usize = (row as usize * self.width as usize + column as usize) * 3;
         RgbColor {
             r: self.buffer[pos],
             g: self.buffer[pos + 1],
@@ -74,7 +74,7 @@ impl DrawBuffer {
     }
 
     fn get_buffer_size(terminal_size: (u16, u16)) -> usize {
-        (terminal_size.0 * terminal_size.1 * 3).into()
+        (terminal_size.0 as usize * terminal_size.1 as usize * 3).into()
     }
 
     pub fn set_color(&mut self, column: u16, row: u16, color: &RgbColor) {
@@ -82,7 +82,7 @@ impl DrawBuffer {
             return;
         }
 
-        let pos: usize = ((row * self.width + column) * 3).into();
+        let pos: usize = (row as usize * self.width as usize + column as usize) * 3;
         self.buffer[pos] = color.r;
         self.buffer[pos + 1] = color.g;
         self.buffer[pos + 2] = color.b;

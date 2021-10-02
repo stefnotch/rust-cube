@@ -1,3 +1,6 @@
+extern crate image;
+
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, RgbImage};
 use std::{io::stdout, time::Duration};
 
 use crossterm::{
@@ -19,6 +22,7 @@ struct Game {
     pub draw_buffer: terminal_renderer::DrawBuffer,
     pub rotation: Vector3,
     pub mouse_down_pos: (u16, u16),
+    pub image: DynamicImage,
 }
 
 impl Game {
@@ -33,7 +37,7 @@ impl Game {
         };
 
         // TODO: Move to draw function
-        cube.render(&mut self.draw_buffer);
+        cube.render(&mut self.draw_buffer, &self.image);
 
         // let rect = Rectangle3D {
         //     top_left: Vector3::new(-0.6, 0.25, 0.5),
@@ -63,10 +67,13 @@ impl Game {
 }
 
 fn main() -> Result<()> {
+    let img = image::open("cat.png").unwrap();
+
     let game = Game {
         draw_buffer: terminal_renderer::DrawBuffer::new(),
         rotation: Vector3::zero(),
         mouse_down_pos: (0, 0),
+        image: img,
     };
 
     //enable_raw_mode()?;

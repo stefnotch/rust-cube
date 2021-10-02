@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 crossterm = "0.21.0"
 game-loop = "0.8.0"
+image = "0.23.14"
