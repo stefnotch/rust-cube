@@ -160,8 +160,43 @@ impl Rectangle3D {
 
         let top_left_2d: Vector2<f64> = self.top_left.into();
         let top_right_2d: Vector2<f64> = self.top_right.into();
-        let bottom_left_2d: Vector2<f64> = self.bottom_left.into();
         let bottom_right_2d: Vector2<f64> = self.bottom_right.into();
+        let bottom_left_2d: Vector2<f64> = self.bottom_left.into();
+
+        // Reference: A Quadrilateral Rendering Primitive https://dl.acm.org/doi/10.1145/1058129.1058131
+        let bary = |point: &Vector2<f64>| {
+            let s =
+                [bottom_left_2d, bottom_right_2d, top_right_2d, top_left_2d].map(|v| v - *point);
+            let mut A: [f64; 4] = [0., 0., 0., 0.];
+            for (index, element) in s.iter().enumerate() {
+                let next = s[(index + 1) % s.len()];
+                A[index] = element.wedge_product(&next);
+            }
+
+            let mut D: [f64; 4] = [0., 0., 0., 0.];
+            for (index, element) in s.iter().enumerate() {
+                let next = s[(index + 1) % s.len()];
+                D[index] = element.dot(&next);
+            }
+
+            let r = s.map(|v| v.length() * 1.); // w_i goes here, not sure what that is
+
+            let mut t: [f64; 4] = [0., 0., 0., 0.];
+            for (index, element) in r.iter().enumerate() {
+                let next = r[(index + 1) % r.len()];
+                t[index] = (element * next - D[index]) / A[index];
+            }
+
+            let mut mu: [f64; 4] = [0., 0., 0., 0.];
+            for (index, element) in t.iter().enumerate() {
+                let prev = t[(index as isize - 1).rem_euclid(t.len() as isize) as usize];
+                mu[index] = (prev * element) / r[index];
+            }
+
+            let sum = mu[0] + mu[1] + mu[2] + mu[3];
+
+            [mu[0] / sum, mu[1] / sum, mu[2] / sum, mu[3] / sum]
+        };
 
         let horizontal_2d = Vector2::new(horizontal.x, horizontal.y);
         let vertical_2d = Vector2::new(vertical.x, vertical.y);
@@ -177,12 +212,15 @@ impl Rectangle3D {
             for row in bounding_box_min_2d.1..=bounding_box_max_2d.1 {
                 let point = unproject((column, row));
 
-                // TODO: Fix those bad UVs
-                let uv = (
-                    (point - top_left_2d).dot(&horizontal_2d_direction)
-                        / horizontal_2d_length.max(0.1),
-                    (point - top_left_2d).dot(&vertical_2d_direction) / vertical_2d_length.max(0.1),
-                );
+                let barycentric_coordinates = bary(&point);
+                let uv = Vector2::new(0., 0.)
+                    * Vector2::new(barycentric_coordinates[0], barycentric_coordinates[0])
+                    + Vector2::new(1., 0.)
+                        * Vector2::new(barycentric_coordinates[1], barycentric_coordinates[1])
+                    + Vector2::new(1., 1.)
+                        * Vector2::new(barycentric_coordinates[2], barycentric_coordinates[2])
+                    + Vector2::new(0., 1.)
+                        * Vector2::new(barycentric_coordinates[3], barycentric_coordinates[3]);
 
                 let b = (point - top_left_2d).wedge_product(&(top_right_2d - top_left_2d)) >= 0.
                     && (point - top_right_2d).wedge_product(&(bottom_right_2d - top_right_2d))
@@ -205,8 +243,7 @@ impl Rectangle3D {
                     );
 
                     /*
-                    if uv.0 < 0.1 {
-                        // Draw the outline
+                    if barycentric_coordinates[0] > 0.5 {
                         draw_buffer.set_color(
                             column,
                             row,
@@ -216,7 +253,19 @@ impl Rectangle3D {
                                 b: 255,
                             },
                         )
-                    } else {
+                    }*/
+
+                    // Draw the bary coords
+                    draw_buffer.set_color(
+                        column,
+                        row,
+                        &RgbColor {
+                            r: (uv.x * 255.) as u8,
+                            g: (uv.y * 255.) as u8,
+                            b: 0,
+                        },
+                    )
+                    /*else {
                         // Draw this point
                         draw_buffer.set_color(
                             column,
