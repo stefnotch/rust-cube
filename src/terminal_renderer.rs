@@ -1,7 +1,9 @@
 use crossterm::{
     cursor::{Hide, MoveTo},
     event, execute, queue,
-    style::{Color, Print, SetBackgroundColor, SetForegroundColor},
+    style::{
+        self, Color, ContentStyle, Print, SetAttribute, SetBackgroundColor, SetForegroundColor,
+    },
     terminal, Result,
 };
 use std::io::{stdout, Write};
@@ -97,6 +99,10 @@ pub fn render(buffer: &DrawBuffer) -> Result<()> {
     let terminal_size = get_terminal_size();
 
     queue!(stdout, Hide)?;
+    if HEIGHT_SCALE >= 2 {
+        queue!(stdout, SetAttribute(style::Attribute::Bold))?;
+        queue!(stdout, SetAttribute(style::Attribute::Underlined))?;
+    }
 
     for row in (0..terminal_size.1).step_by(HEIGHT_SCALE.into()) {
         queue!(stdout, MoveTo(0, row / 2))?;
@@ -110,7 +116,7 @@ pub fn render(buffer: &DrawBuffer) -> Result<()> {
             if HEIGHT_SCALE >= 2 {
                 let bottom_color = buffer.get_color(column, row + 1);
                 queue!(stdout, SetForegroundColor(bottom_color.into()))?;
-                queue!(stdout, Print("_"))?; // TODO: Print "Lower half block"
+                queue!(stdout, Print("_"))?; // TODO: Print "Lower half block" ▄ (but cmd doesn't always support it)
             } else {
                 queue!(stdout, Print(" "))?;
             }
